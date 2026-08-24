@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ticketo — สั่งจองพรีออเดอร์</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #14B8A6; --primary-dark: #0F8F82; --primary-light: #EAF7F6;
+    --dark: #0B2545; --text: #3F5773; --text-light: #7C93A8;
+    --bg: #F8FAFC; --card: #FFFFFF; --border: #E2E8F0;
+    --warn: #F59E0B; --warn-bg: #FEF3C7;
+    --ticketo-red: #D22B3E; /* สีแดงอ้างอิงจากโลโก้ */
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--dark); font-family: 'IBM Plex Sans Thai', sans-serif; display: flex; justify-content: center; }
+  
+  /* Mobile Container Simulation */
+  .container { width: 100%; max-width: 480px; background: var(--bg); min-height: 100vh; position: relative; padding-bottom: 100px; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+  
+  /* Ticketo Branding Header */
+  .brand-header { display: flex; justify-content: center; padding: 16px; background: #fff; border-bottom: 1px solid var(--border); }
+  .brand-header img { height: 32px; object-fit: contain; }
+
+  .card { background: var(--card); padding: 24px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+  
+  /* Trust Score Section */
+  .store-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .store-info { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 44px; height: 44px; background: var(--dark); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; }
+  .store-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .social-icons { display: flex; gap: 4px; }
+  .s-icon { width: 18px; height: 18px; background: var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; text-decoration: none; color: var(--text); }
+  .trust-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--primary-light); color: var(--primary-dark); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+  .reviews-link { font-size: 12px; color: var(--text-light); text-decoration: underline; cursor: pointer; }
+
+  /* Product Section */
+  .product-image { width: 100%; height: 320px; background: #E2E8F0; border-radius: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); }
+  .product-image img { width: 100%; height: 100%; object-fit: cover; }
+  .product-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+  .tag { display: inline-block; background: var(--warn-bg); color: #B45309; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; margin-bottom: 12px; }
+
+  /* Status Timeline */
+  .timeline { display: flex; justify-content: space-between; margin-top: 24px; position: relative; }
+  .timeline::before { content: ''; position: absolute; top: 12px; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 1; }
+  .timeline-step { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; z-index: 2; width: 25%; }
+  .dot { width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text-light); }
+  .timeline-step.active .dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .step-label { font-size: 11px; color: var(--text-light); font-weight: 500; text-align: center; }
+  .timeline-step.active .step-label { color: var(--primary-dark); font-weight: 600; }
+
+  /* Calculator Section */
+  .calc-box { border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-top: 16px; }
+  .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .price-label { font-size: 13px; color: var(--text); }
+  .price-val { font-family: 'IBM Plex Mono'; font-weight: 600; font-size: 15px; }
+  .qty-control { display: flex; align-items: center; gap: 12px; background: var(--bg); padding: 4px; border-radius: 8px; }
+  .qty-btn { width: 28px; height: 28px; border: none; background: var(--card); border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .qty-num { font-family: 'IBM Plex Mono'; font-weight: 600; font-size: 14px; min-width: 20px; text-align: center; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  
+  /* Form & Notifications */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; transition: border-color 0.2s; }
+  textarea.form-input { resize: vertical; min-height: 80px; }
+  .form-input:focus { outline: none; border-color: var(--primary); }
+  
+  .delivery-options { display: flex; gap: 10px; margin-bottom: 16px; }
+  .del-option { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 12px 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-light); transition: 0.2s; }
+  .del-option input { display: none; }
+  .del-option.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+
+  .notify-box { background: var(--primary-light); border: 1px solid #C7E4E1; border-radius: 10px; padding: 16px; margin-top: 24px; }
+  .notify-title { font-size: 13px; font-weight: 600; color: var(--primary-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .connect-btns { display: flex; gap: 10px; }
+  .btn-social { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; color: #fff; font-family: inherit; transition: 0.2s; }
+  .btn-line { background: #06C755; box-shadow: 0 3px 0 #05A044; }
+  .btn-msg { background: #0084FF; box-shadow: 0 3px 0 #0069CC; }
+  .btn-social:active { transform: translateY(2px); box-shadow: none; }
+
+  /* Instruction Text */
+  .tracking-hint { text-align: center; padding: 24px 20px; color: var(--text-light); font-size: 12px; line-height: 1.6; }
+
+  /* Sticky Bottom Bar */
+  .bottom-bar { position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--card); padding: 16px 24px; border-top: 1px solid var(--border); box-shadow: 0 -8px 24px rgba(0,0,0,0.06); z-index: 10; display: flex; gap: 16px; align-items: center; }
+  .total-block { flex: 1; }
+  .total-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
+  .total-price { font-family: 'IBM Plex Mono'; font-size: 20px; font-weight: 700; color: var(--primary-dark); }
+  .btn-submit { background: var(--primary); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-family: inherit; cursor: pointer; flex: 1; text-align: center; box-shadow: 0 4px 0 var(--primary-dark); transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .btn-submit .main-txt { font-size: 14.5px; font-weight: 700; }
+  .btn-submit .sub-txt { font-size: 10px; font-weight: 400; opacity: 0.9; margin-top: 2px; }
+  .btn-submit:active { transform: translateY(4px); box-shadow: none; }
+
+  /* Modal Reviews */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(11,37,69,0.7); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-content { background: var(--card); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 24px; max-height: 80vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .review-item { border-bottom: 1px solid var(--border); padding: 12px 0; }
+  .review-item:last-child { border-bottom: none; }
+  .review-stars { color: #F59E0B; font-size: 12px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Ticketo Branding Logo -->
+  <div class="brand-header">
+    <img src="watermarked_img_15286389609275490895.jpg" alt="Ticketo Logo">
+  </div>
+
+  <!-- 1. Trust Score & Reviews -->
+  <div class="card store-header">
+    <div class="store-info">
+      <div class="avatar">H</div>
+      <div>
+        <div class="store-name">
+          Hobby Store TH
+          <!-- Social Icons for Social Proof -->
+          <div class="social-icons">
+            <a href="#" class="s-icon" title="Facebook">FB</a>
+            <a href="#" class="s-icon" title="Instagram">IG</a>
+            <a href="#" class="s-icon" title="X / Twitter">𝕏</a>
+          </div>
+        </div>
+        <div class="trust-badge">★ 4.9 (สำเร็จ 216/220 รอบ)</div>
+      </div>
+    </div>
+    <div class="reviews-link" onclick="document.getElementById('reviewModal').style.display='flex'">ดูรีวิวร้านค้า</div>
+  </div>
+
+  <!-- 2. Product & Status -->
+  <div class="card">
+    <div class="tag">เปิดรับจอง (ขาดอีก 4 ชิ้นปิดรอบ)</div>
+    <div class="product-title">ฟิกเกอร์ 1/6 Richelieu — Azur Lane</div>
+    <div class="product-image">
+      <!-- ใช้ภาพสินค้าที่ผู้ใช้ต้องการ -->
+      <img src="image_269a09.jpg" alt="ฟิกเกอร์ 1/6 Richelieu — Azur Lane">
+    </div>
+    
+    <div style="font-size: 12.5px; color: var(--text); line-height: 1.5;">
+      ฟิกเกอร์สเกล 1/6 ลิขสิทธิ์แท้ รายละเอียดคมชัด คาดการณ์สินค้าถึงไทย: 15 ต.ค. 2026
+    </div>
+
+    <!-- Status Tracking -->
+    <div class="timeline">
+      <div class="timeline-step active">
+        <div class="dot">✔</div>
+        <div class="step-label">เปิดรับจอง</div>
+      </div>
+      <div class="timeline-step">
+        <div class="dot">2</div>
+        <div class="step-label">สั่งต้นทาง</div>
+      </div>
+      <div class="timeline-step">
+        <div class="dot">3</div>
+        <div class="step-label">ถึงไทย</div>
+      </div>
+      <div class="timeline-step">
+        <div class="dot">4</div>
+        <div class="step-label">จัดส่ง</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Calculator & Form -->
+  <div class="card">
+    <h3 style="font-size: 16px; margin-bottom: 16px;">รายละเอียดการสั่งจอง</h3>
+    
+    <div class="calc-box">
+      <div class="price-row">
+        <div class="price-label">ราคาเต็ม (ต่อชิ้น)</div>
+        <div class="price-val">฿5,500</div>
+      </div>
+      <div class="price-row">
+        <div class="price-label" style="display:flex; align-items:center; gap:8px;">
+          จำนวน
+          <div class="qty-control">
+            <button class="qty-btn" onclick="updateQty(-1)">-</button>
+            <div class="qty-num" id="qtyDisplay">1</div>
+            <button class="qty-btn" onclick="updateQty(1)">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="price-row">
+        <div class="price-label" style="color:var(--text-light);">ยอดคงเหลือ (จ่ายเมื่อของถึงไทย)</div>
+        <div class="price-val" style="color:var(--text-light);" id="balanceDisplay">฿3,850</div>
+      </div>
+      <div class="price-row" style="margin-bottom:0;">
+        <div class="price-label" style="font-weight:600; color:var(--primary-dark);">มัดจำ 30% (ต้องชำระวันนี้)</div>
+        <div class="price-val" style="color:var(--primary-dark);" id="depositDisplay">฿1,650</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="border-bottom:none; margin-bottom: 0;">
+    <h3 style="font-size: 16px; margin-bottom: 16px;">ข้อมูลจัดส่งสินค้า</h3>
+    
+    <div class="form-group">
+      <label class="form-label">ชื่อ - นามสกุล ผู้รับ</label>
+      <input type="text" class="form-input" placeholder="กรอกชื่อและนามสกุลจริง">
+    </div>
+    <div class="form-group">
+      <label class="form-label">เบอร์โทรศัพท์</label>
+      <input type="tel" class="form-input" placeholder="08X-XXX-XXXX">
+    </div>
+
+    <!-- 4. เพิ่มช่องทางการรับสินค้าและที่อยู่ -->
+    <label class="form-label" style="margin-top: 20px;">รูปแบบการรับสินค้า</label>
+    <div class="delivery-options">
+      <label class="del-option active" id="opt-home" onclick="setDelivery('home')">
+        <input type="radio" name="delivery" value="home" checked> 🚚 จัดส่งถึงบ้าน
+      </label>
+      <label class="del-option" id="opt-store" onclick="setDelivery('store')">
+        <input type="radio" name="delivery" value="store"> 🏪 รับเองหน้าร้าน
+      </label>
+    </div>
+
+    <div class="form-group" id="address-box">
+      <label class="form-label">ที่อยู่จัดส่งแบบละเอียด</label>
+      <textarea class="form-input" placeholder="บ้านเลขที่, หมู่, ซอย, ถนน, ตำบล/แขวง, อำเภอ/เขต, จังหวัด, รหัสไปรษณีย์"></textarea>
+    </div>
+
+    <!-- 5. เปลี่ยนเป็นปุ่ม Connect โซเชียล -->
+    <div class="notify-box">
+      <div class="notify-title">🔔 รับแจ้งเตือนเมื่อของถึงไทยอัตโนมัติ</div>
+      <div style="font-size: 11px; color:var(--text); margin-bottom: 12px;">เลือกล็อกอินเพื่อรับการแจ้งเตือนและสลิปยืนยันทางแชท</div>
+      <div class="connect-btns">
+        <button class="btn-social btn-line" onclick="toast('เชื่อมต่อ LINE สำเร็จ')">💬 Connect LINE</button>
+        <button class="btn-social btn-msg" onclick="toast('เชื่อมต่อ Messenger สำเร็จ')">⚡ Messenger</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- คำแนะนำการเช็คสถานะ -->
+  <div class="tracking-hint">
+    💡 <b>ไม่ต้องกลัวบิลหาย!</b><br>
+    คุณสามารถกลับมาเช็คสถานะออเดอร์นี้ได้ตลอดเวลา<br>เพียงเข้าเว็บ Ticketo แล้วกรอกเบอร์โทรศัพท์ของคุณ
+  </div>
+
+  <!-- Sticky Bottom Checkout -->
+  <div class="bottom-bar">
+    <div class="total-block">
+      <div class="total-label">ยอดชำระมัดจำวันนี้</div>
+      <div class="total-price" id="bottomPriceDisplay">฿1,650</div>
+    </div>
+    <!-- 6. เปลี่ยนข้อความปุ่มให้ปิดการขายชัดเจน -->
+    <button class="btn-submit" onclick="alert('ระบบกำลังพาท่านไปยังหน้า QR Code เพื่อชำระเงินและแนบสลิป...')">
+      <div class="main-txt">ชำระเงินมัดจำ</div>
+      <div class="sub-txt">(สแกน QR / แนบสลิป)</div>
+    </button>
+  </div>
+</div>
+
+<!-- Reviews Modal -->
+<div class="modal" id="reviewModal" onclick="if(event.target===this) this.style.display='none'">
+  <div class="modal-content">
+    <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+      <h3 style="font-size:18px;">รีวิวจากลูกค้า (4.9/5)</h3>
+      <span style="font-size:20px; cursor:pointer;" onclick="document.getElementById('reviewModal').style.display='none'">×</span>
+    </div>
+    <div class="review-item">
+      <div class="review-stars">★★★★★</div>
+      <div style="font-size:13px; font-weight:600;">คุณ ธนกร อ.</div>
+      <div style="font-size:12.5px; color:var(--text); margin-top:4px;">แพ็คของแน่นหนามากครับ ของถึงตรงตาม ETA ที่แจ้งไว้เลย ประทับใจมาก</div>
+    </div>
+    <div class="review-item">
+      <div class="review-stars">★★★★★</div>
+      <div style="font-size:13px; font-weight:600;">คุณ พิมพ์ชนก ว.</div>
+      <div style="font-size:12.5px; color:var(--text); margin-top:4px;">ระบบอัปเดตสถานะดีมาก ไม่ต้องคอยทักไปถามแอดมินบ่อยๆ ว่าของถึงไหนแล้ว</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let qty = 1;
+  const pricePerItem = 5500;
+  const depositPercent = 0.3;
+
+  function updateQty(change) {
+    qty += change;
+    if (qty < 1) qty = 1;
+    
+    document.getElementById('qtyDisplay').innerText = qty;
+    
+    const totalPrice = pricePerItem * qty;
+    const deposit = totalPrice * depositPercent;
+    const balance = totalPrice - deposit;
+
+    document.getElementById('depositDisplay').innerText = '฿' + deposit.toLocaleString();
+    document.getElementById('balanceDisplay').innerText = '฿' + balance.toLocaleString();
+    document.getElementById('bottomPriceDisplay').innerText = '฿' + deposit.toLocaleString();
+  }
+
+  function setDelivery(type) {
+    document.getElementById('opt-home').classList.remove('active');
+    document.getElementById('opt-store').classList.remove('active');
+    
+    if(type === 'home') {
+      document.getElementById('opt-home').classList.add('active');
+      document.getElementById('address-box').style.display = 'block';
+    } else {
+      document.getElementById('opt-store').classList.add('active');
+      document.getElementById('address-box').style.display = 'none';
+    }
+  }
+
+  function toast(msg) {
+    alert(msg); // Placeholder for toast notification
+  }
+</script>
+</body>
+</html>
